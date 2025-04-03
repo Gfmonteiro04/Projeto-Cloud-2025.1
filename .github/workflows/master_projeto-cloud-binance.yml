@@ -1,8 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
-
-name: Build and deploy Python app to Azure Web App - projeto-cloud-binance
+name: Build and deploy Django app to Azure Web App - projeto-cloud-binance
 
 on:
   push:
@@ -14,36 +10,40 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout do código
+        uses: actions/checkout@v4
 
-      - name: Set up Python version
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.10'  # Alterado para uma versão estável
 
-      - name: Create and start virtual environment
+      - name: Criar e ativar ambiente virtual
         run: |
           python -m venv venv
           source venv/bin/activate
-      
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-        
-      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+      - name: Instalar dependências
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Upload artifact for deployment jobs
+      - name: Coletar arquivos estáticos do Django
+        run: |
+          python manage.py collectstatic --noinput
+
+      - name: Criar arquivo de deploy
+        run: |
+          zip -r release.zip . -x "*.git*" "__pycache__/*" "venv/*"
+
+      - name: Upload do artefato para o job de deploy
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: |
-            release.zip
-            !venv/
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -52,30 +52,33 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Baixar o artefato do job de build
         uses: actions/download-artifact@v4
         with:
           name: python-app
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
+      - name: Descompactar o artefato
+        run: unzip release.zip -d $GITHUB_WORKSPACE
 
-      
-      - name: Login to Azure
+      - name: Login no Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_8D1B6C4A86A941FDB077FA3533DF0A5A }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A8B4229EF66342989B707F59381FEEF7 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_AE898FD7A0E14BD8935B8ADC805D04E1 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Fazer deploy no Azure Web App
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'projeto-cloud-binance'
           slot-name: 'Production'
-          
+          package: .
+
+      - name: Definir comando de inicialização no Azure
+        run: |
+          az webapp config set --name projeto-cloud-binance --resource-group SEU_RESOURCE_GROUP --startup-file "gunicorn project_cloud_binance.wsgi --bind=0.0.0.0"
