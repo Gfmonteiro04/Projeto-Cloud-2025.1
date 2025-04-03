@@ -1,3 +1,5 @@
+import os
+
 """
 Django settings for project_cloud_binance project.
 
@@ -13,7 +15,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -23,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-y=h%*)(osnfs6+y$hg$ghl7fnqgsbq*vz8pi#sl=1i!ict^-!s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1","projeto-cloud-binance-bde8b6bybue7emb5.centralus-01.azurewebsites.net",'*']
-
+#ALLOWED_HOSTS = ["127.0.0.1","projeto-cloud-binance-bde8b6bybue7emb5.centralus-01.azurewebsites.net",'*']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -125,10 +127,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]  # Se você tiver uma pasta "static"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # Local onde os arquivos estáticos serão coletados
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
