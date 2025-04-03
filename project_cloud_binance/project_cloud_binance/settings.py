@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-y=h%*)(osnfs6+y$hg$ghl7fnqgsbq*vz8pi#sl=1i!ict^-!s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["127.0.0.1","projeto-cloud-binance-bde8b6bybue7emb5.centralus-01.azurewebsites.net",'*']
 
 
 # Application definition

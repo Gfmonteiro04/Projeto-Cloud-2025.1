@@ -1,0 +1,1 @@
+web: gunicorn project_cloud_binance.wsgi --log-file -
