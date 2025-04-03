@@ -33,6 +33,7 @@ jobs:
 
       - name: Coletar arquivos estáticos do Django
         run: |
+          cd project_cloud_binance
           python manage.py collectstatic --noinput
 
       - name: Criar arquivo de deploy
