@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-y=h%*)(osnfs6+y$hg$ghl7fnqgsbq*vz8pi#sl=1i!ict^-!s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -81,7 +81,7 @@ DATABASES = {
         'USER': 'mysql',    # Usuário do MySQL na Azure
         'PASSWORD': 'minecraft2013!',  # Senha do MySQL na Azure
         'HOST': 'projeto-cloud-binance.mysql.database.azure.com',  # Host do MySQL na Azure
-        'PORT': '3306',  
+        'PORT': '3306',
         'OPTIONS': {
             'ssl': {'ssl-mode': 'DISABLED'},  # Desativa SSL
         },
