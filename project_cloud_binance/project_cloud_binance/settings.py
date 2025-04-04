@@ -53,6 +53,11 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://projeto-cloud-binance.azurewebsites.net",
+    "https://projeto-cloud-binance-bde8b6bybue7emb5.centralus-01.azurewebsites.net"
+]
+
 ROOT_URLCONF = 'project_cloud_binance.urls'
 
 
