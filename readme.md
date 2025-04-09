@@ -94,8 +94,3 @@ CSRF_TRUSTED_ORIGINS = [
 az webapp restart --name projeto-cloud-binance --resource-group ibmec-cloud-2025
 ```
 
-## Contato
-Caso tenha dúvidas ou sugestões, entre em contato:
-📧 **Email:** seuemail@exemplo.com  
-🐙 **GitHub:** [seu-usuario](https://github.com/seu-usuario)
-
