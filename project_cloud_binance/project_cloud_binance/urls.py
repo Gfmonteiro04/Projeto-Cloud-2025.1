@@ -20,6 +20,4 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),  # Garante que o painel de admin funciona
     path('', include('binance_bot.urls')),  # Inclui as URLs do app principal
-    path('order-history/', views.get_order_history, name='order_history')
 ]
-
