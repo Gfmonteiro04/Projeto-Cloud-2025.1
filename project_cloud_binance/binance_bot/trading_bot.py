@@ -16,7 +16,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 
 
 load_dotenv()
-BASE_URL = "https://api.binance.com"
+BASE_URL = "https://testnet.binance.vision"
 API_KEY = os.getenv("BINANCE_API_KEY")
 PRIVATE_KEY_PEM = os.getenv("PRIVATE_KEY")
 private_key = serialization.load_pem_private_key(PRIVATE_KEY_PEM.encode(), password=None, backend=default_backend())
@@ -54,8 +54,6 @@ def execute_trade(coin_code, order_type, quantity):
     # Generate the signature with the private key
     signature = generate_signature(params, private_key)
     params['signature'] = signature
-
-    # Set the headers with your API key
     headers = {'X-MBX-APIKEY': API_KEY}
 
     # Binance Testnet order endpoint
@@ -117,14 +115,13 @@ def get_account_info():
     params = {
         "timestamp": timestamp
     }
-    # Gera a assinatura usando a função adaptada para sua chave
+
     signature = generate_signature(params, private_key)
-    params["signature"] = signature
-    headers = {
-        "X-MBX-APIKEY": API_KEY
-    }
+    params['signature'] = signature
+    headers = {'X-MBX-APIKEY': API_KEY}
+
     url = BASE_URL + endpoint
-    response = requests.get(url, headers=headers, params=params)
+    response = requests.get(url, headers=headers, data=params)
     # Verifica se a requisição foi bem-sucedida
     response.raise_for_status()
     return response.json()
