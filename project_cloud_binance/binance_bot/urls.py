@@ -11,4 +11,5 @@ urlpatterns = [
     path('', home, name='home'),
     path('api/trade/', trade_coin, name='trade_coin'),
     path('account-info/', views.account_info_view, name='account_info'),
+    path('coin-price/<str:coin>/', views.coin_price_view, name='coin_price'),
 ]

@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
+import requests
+import time
 import os
 from .trading_bot import get_account_info
 
@@ -45,7 +47,35 @@ def trade_coin(request):
 
 def account_info_view(request):
     try:
-        account_info = get_account_info()  
+        account_info = get_account_info()
         return JsonResponse(account_info)
     except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def coin_price_view(request, coin):
+    try:
+        # URL da API da Binance para obter a cotação
+        url = f'https://api.binance.com/api/v3/ticker/price?symbol={coin}USDT'
+
+        # Faz a requisição GET para obter o preço
+        response = requests.get(url)
+
+        # Se a resposta for bem-sucedida
+        if response.status_code == 200:
+            data = response.json()
+            price = data['price']  # Preço da moeda em USDT
+
+            # Pega o timestamp atual
+            timestamp = int(time.time() * 1000)  # Timestamp em milissegundos
+
+            return JsonResponse({
+                'coin': coin,
+                'price': price,
+                'timestamp': timestamp  # Retorna o timestamp do momento
+            })
+        else:
+            return JsonResponse({'error': 'Moeda não encontrada ou erro ao consultar a API'}, status=400)
+
+    except Exception as e:
+        # Se ocorrer algum erro
         return JsonResponse({'error': str(e)}, status=500)
