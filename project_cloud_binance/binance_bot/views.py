@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import json
 import os
-# Outros imports...
+from .trading_bot import get_account_info
 
 @csrf_exempt
 def trade_coin(request):
@@ -43,4 +43,9 @@ def trade_coin(request):
     }
     return JsonResponse(response_data)
 
-# Create your views here.
+def account_info_view(request):
+    try:
+        account_info = get_account_info()  
+        return JsonResponse(account_info)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

@@ -8,42 +8,25 @@ from django.http import JsonResponse
 from .models import TradeOrder
 
 # Imports to use the private key for signing
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
 # Load environment variables
 load_dotenv()
-API_KEY ='EmdjuaXJejDC7bWwdvzlefNXzCbhADwogNBWFNyiZilMWEQ7y8yyhrWAqc1PFeyP'
-# You can set PRIVATE_KEY_PATH in your .env; otherwise it defaults to 'test-prv-key.pem'
-PRIVATE_KEY_PATH ='../test-prv-key.pem'
-
-# Load the private key from the PEM file
-with open(PRIVATE_KEY_PATH, 'rb') as key_file:
-    private_key = load_pem_private_key(key_file.read(), password=None)
-
-BASE_URL = "https://api.binance.com"  # Base URL for Binance API
+BASE_URL = "https://api.binance.com"
+API_KEY = os.getenv("BINANCE_API_KEY")
+PRIVATE_KEY_PEM = os.getenv("PRIVATE_KEY")
+private_key = serialization.load_pem_private_key(PRIVATE_KEY_PEM.encode(), password=None, backend=default_backend())
 
 def generate_signature(params, private_key):
-    """
-    Generate a signature by signing the query string payload using the private key.
-    The parameters are first sorted and concatenated in the format key=value.
-    The signature is returned as a base64-encoded string.
-    """
-    # Concatenate sorted parameters into a query string
     query_string = '&'.join([f"{key}={value}" for key, value in sorted(params.items())])
     signature = private_key.sign(query_string.encode('ascii'))
     return base64.b64encode(signature).decode('utf-8')
 
 def execute_trade(coin_code, order_type, quantity):
-    """
-    Executes a trade order using the Binance Testnet API.
-
-    - If the provided coin code does not end with 'USDT', the code appends it.
-    - For BUY orders, the trade price is set to 1% below the current market price;
-      for SELL orders, the price is set to 1% above.
-    - The request payload is signed using the loaded private key.
-    """
     # Normalize coin code and append 'USDT' if not provided
     coin_code = coin_code.upper()
     symbol = coin_code if coin_code.endswith("USDT") else coin_code + "USDT"
@@ -91,18 +74,6 @@ def execute_trade(coin_code, order_type, quantity):
     return order
 
 def trade_coin(request):
-    """
-    API endpoint to execute a trade operation.
-
-    Supported methods:
-      - GET: parameters passed via the query string.
-      - POST: parameters passed in the JSON body.
-
-    Expected parameters:
-      - coin: coin code (e.g., BTC, ETH). 'USDT' is appended automatically if missing.
-      - order_type: either "BUY" or "SELL".
-      - quantity: the amount to trade.
-    """
     if request.method == 'GET':
         coin_code = request.GET.get('coin', 'BTC')
         order_type = request.GET.get('order_type', 'BUY')
@@ -139,3 +110,23 @@ def trade_coin(request):
         'created_at': order.created_at.isoformat(),
     }
     return JsonResponse(response_data)
+
+def get_account_info():
+    endpoint = "/api/v3/account"
+    timestamp = int(time.time() * 1000)
+    params = {
+        "timestamp": timestamp
+    }
+    # Gera a assinatura usando a função adaptada para sua chave
+    signature = generate_signature(params, private_key)
+    params["signature"] = signature
+    headers = {
+        "X-MBX-APIKEY": API_KEY
+    }
+    url = BASE_URL + endpoint
+    response = requests.get(url, headers=headers, params=params)
+    # Verifica se a requisição foi bem-sucedida
+    response.raise_for_status()
+    return response.json()
+
+
