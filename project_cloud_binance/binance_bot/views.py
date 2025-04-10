@@ -79,3 +79,38 @@ def coin_price_view(request, coin):
     except Exception as e:
         # Se ocorrer algum erro
         return JsonResponse({'error': str(e)}, status=500)
+
+def get_order_history(request):
+    coin_code = request.GET.get('coin', 'BTC')
+
+    try:
+        # Normaliza o símbolo da moeda
+        coin_code = coin_code.upper()
+        symbol = coin_code if coin_code.endswith("USDT") else coin_code + "USDT"
+
+        endpoint = "/api/v3/allOrders"
+        timestamp = int(time.time() * 1000)
+
+        params = {
+            "symbol": symbol,
+            "timestamp": timestamp,
+        }
+
+        signature = generate_signature(params, private_key)
+        params['signature'] = signature
+
+        headers = {'X-MBX-APIKEY': API_KEY}
+        url = BASE_URL + endpoint
+
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+
+        orders = response.json()
+
+        return JsonResponse({
+            'symbol': symbol,
+            'orders': orders
+        })
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
