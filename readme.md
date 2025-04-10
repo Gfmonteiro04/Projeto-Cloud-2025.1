@@ -4,6 +4,8 @@
 
 - **Gabriel Franklin Monteiro**
 - **Ian Esteves Amaral Francisco**
+- **Esther Pessanha**
+- **Brenda Araujo**
   
 ## Descrição
 O **Projeto Cloud Binance** é uma aplicação desenvolvida em **Django** para a criação de um **bot de trading** automatizado, focado na compra e venda de criptomoedas na **Binance**. O projeto está hospedado na **Azure**, utilizando diversos serviços em nuvem para garantir escalabilidade, segurança e alta disponibilidade.
