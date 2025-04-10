@@ -7,14 +7,14 @@ from dotenv import load_dotenv
 from django.http import JsonResponse
 from .models import TradeOrder
 
-# Imports to use the private key for signing
+
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
-# Load environment variables
+
 load_dotenv()
 BASE_URL = "https://api.binance.com"
 API_KEY = os.getenv("BINANCE_API_KEY")
