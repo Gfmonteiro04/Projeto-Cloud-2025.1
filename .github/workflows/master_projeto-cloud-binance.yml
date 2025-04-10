@@ -79,5 +79,3 @@ jobs:
           app-name: 'projeto-cloud-binance'
           slot-name: 'Production'
           package: .
-
-      
