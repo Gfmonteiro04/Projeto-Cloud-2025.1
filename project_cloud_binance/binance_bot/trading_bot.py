@@ -7,19 +7,46 @@ from dotenv import load_dotenv
 from django.http import JsonResponse
 from .models import TradeOrder
 
-
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
-
+# Carrega as variáveis de ambiente (mantém o que for necessário)
 load_dotenv()
 BASE_URL = "https://testnet.binance.vision"
 API_KEY = os.getenv("BINANCE_API_KEY")
-PRIVATE_KEY_PEM = os.getenv("PRIVATE_KEY")
-private_key = serialization.load_pem_private_key(PRIVATE_KEY_PEM.encode(), password=None, backend=default_backend())
+
+# =======================
+# AQUI FOI AJUSTADO:
+# Em vez de usar uma variável de ambiente com caminho absoluto, carregamos a chave privada
+# a partir de um arquivo utilizando caminhos relativos.
+# =======================
+
+# Obtém o diretório deste arquivo (trading_bot.py)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Sobe um nível para chegar à pasta 'binance_bot'
+project_binance_bot_dir = os.path.dirname(current_dir)
+# Sobe outro nível para chegar à pasta 'project_cloud_binance'
+project_dir = os.path.dirname(project_binance_bot_dir)
+# Sobe mais um nível para atingir a raiz do repositório, supondo que a pasta secrets esteja lá
+root_dir = os.path.dirname(project_dir)
+# Monta o caminho relativo para o arquivo da chave privada
+private_key_file = os.path.join(root_dir, "secrets", "test-prv-key.pem")
+
+# Lê o conteúdo do arquivo da chave privada
+with open(private_key_file, "rb") as key_file:
+    PRIVATE_KEY_PEM = key_file.read().decode("utf-8")
+
+# Carrega a chave privada utilizando a biblioteca cryptography
+private_key = serialization.load_pem_private_key(
+    PRIVATE_KEY_PEM.encode(), password=None, backend=default_backend()
+)
+
+# =======================
+# O restante do código permanece igual
+# =======================
 
 def generate_signature(params, private_key):
     query_string = '&'.join([f"{key}={value}" for key, value in sorted(params.items())])
@@ -27,20 +54,15 @@ def generate_signature(params, private_key):
     return base64.b64encode(signature).decode('utf-8')
 
 def execute_trade(coin_code, order_type, quantity):
-    # Normalize coin code and append 'USDT' if not provided
     coin_code = coin_code.upper()
     symbol = coin_code if coin_code.endswith("USDT") else coin_code + "USDT"
 
-    # Get the current price from Binance
     ticker_url = f'{BASE_URL}/api/v3/ticker/price?symbol={symbol}'
     response = requests.get(ticker_url)
-    response.raise_for_status()  # Raise an error if request fails
+    response.raise_for_status()
     price = float(response.json()['price'])
-
-    # Determine the valid price: 1% discount for BUY, 1% premium for SELL
     valid_price = round(price * 0.99, 2) if order_type.upper() == 'BUY' else round(price * 1.01, 2)
 
-    # Prepare the parameters for the order
     params = {
         'symbol': symbol,
         'side': order_type.upper(),
@@ -51,17 +73,14 @@ def execute_trade(coin_code, order_type, quantity):
         'timestamp': int(time.time() * 1000)
     }
 
-    # Generate the signature with the private key
     signature = generate_signature(params, private_key)
     params['signature'] = signature
     headers = {'X-MBX-APIKEY': API_KEY}
 
-    # Binance Testnet order endpoint
     trade_url = 'https://testnet.binance.vision/api/v3/order'
     response = requests.post(trade_url, headers=headers, data=params)
     order_data = response.json()
 
-    # Save the order details in the database
     order = TradeOrder.objects.create(
         symbol=symbol,
         order_type=order_type.upper(),
@@ -98,7 +117,6 @@ def trade_coin(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-    # Return the order details as JSON
     response_data = {
         'symbol': order.symbol,
         'order_type': order.order_type,
@@ -122,8 +140,5 @@ def get_account_info():
 
     url = BASE_URL + endpoint
     response = requests.get(url, headers=headers, data=params)
-    # Verifica se a requisição foi bem-sucedida
     response.raise_for_status()
     return response.json()
-
-
