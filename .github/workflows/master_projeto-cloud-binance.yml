@@ -79,3 +79,7 @@ jobs:
           app-name: 'projeto-cloud-binance'
           slot-name: 'Production'
           package: .
+          
+      - name: Definir comando de inicialização no Azure
+        run: |
+          az webapp config set --name projeto-cloud-binance --resource-group ibmec-cloud-2025 --startup-file "gunicorn project_cloud_binance.wsgi --chdir project_cloud_binance --bind=0.0.0.0"          
